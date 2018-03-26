@@ -1,0 +1,26 @@
+{
+  "name": "twitter-test",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Wisdoom/twitter-test.git"
+  },
+  "author": "Giancarlo",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Wisdoom/twitter-test/issues"
+  },
+  "homepage": "https://github.com/Wisdoom/twitter-test#readme",
+  "engines": {
+    "node": "9.4.0"
+  },
+  "dependencies": {
+    "express": "^4.16.3",
+    "twitter": "^1.7.1"
+  }
+}

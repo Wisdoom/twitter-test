@@ -1,3 +1,5 @@
+require('dotenv').config();
+const pjson = require("json-beautify");
 const express = require('express');
 const path = require('path');
 const twitter = require('twitter');
@@ -10,10 +12,65 @@ const client = new twitter({
     access_token_secret: process.env.ACCESS_TOKEN_SECRET
   });
 
-  //direct_messages/events/list
-  client.get('direct_messages/show', {id: "16519133-914786466190020608"}, function(error, tweets, response) {
-    if(error) {console.log("error:\n");console.log(Object.values(error))};
-    //console.log("Tweets\n"+tweets);  // The favorites. 
-    console.log("Response raw\n");  // Raw response object. 
-    re = JSON.stringify(response);  // Raw response object. 
+  const dmList = new Promise((resolve, reject) => {
+      client.get('direct_messages/events/list', function(error, tweets, response) {
+          if(error) {
+              reject(Error(`${error}`));
+          };
+          resolve(response);
+      })
   });
+
+express()
+  .use(express.static(path.join(__dirname, 'public')))
+  .get('/', function(request, response) { response.send(`HELLO`); })
+  .get('/dm-list', function(request, response) {
+      dmList
+        .then(data => {
+            response.send(prepareResponse(data))
+        })
+        .catch(err => response.send(`Error: \n${err}`));
+  })
+  .listen(PORT, () => console.log(`Listening on http://localhost:${ PORT }`));
+
+function prepareResponse(data){
+    
+    if(data){
+        const events = JSON.parse(data.body).events;
+        if(events.length > 0) {
+            const retData = events.map(event => {
+                let ts = new Date(1970, 0, 1);
+                ts.setMilliseconds(event.created_timestamp)
+                ts = ts.toISOString();
+                const recipient = event.message_create.target.recipient_id === process.env.OWNER_ID ?
+                    process.env.OWNER : event.message_create.target.recipient_id;
+                const sender = event.message_create.sender_id === process.env.OWNER_ID ?
+                    process.env.OWNER : event.message_create.sender_id;
+                const text = event.message_create.message_data.text;
+
+                return `
+                    Hora: ${ts}<br/>
+                    Enviado por: ${sender}<br/>
+                    Recibido por: ${recipient}<br/>
+                    Texto: ${text}<br/>
+                    ___<br/>
+                `
+            }).join("");
+            return retData;
+        }
+        
+        
+            // console.log(events[0].created_timestamp);
+            // var t = new Date(1970, 0, 1)
+            // t.setMilliseconds(events[0].created_timestamp);
+            // console.log(t.toISOString())
+    }
+}
+/*
+___
+Hora: 
+Enviado por:
+Recibido por:
+Texto:
+___
+*/
